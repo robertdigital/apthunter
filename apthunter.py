@@ -4,7 +4,7 @@
 # https://docs.python.org/3/library/argparse.html
 import argparse
 
-# Use the json library to simply the handling of JSON
+# Use the json library to simplify the handling of JSON
 # https://docs.python.org/3/library/json.html
 import json
 
