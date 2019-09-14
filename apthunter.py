@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Use the argparse library to simplify the command-line argument handling
 # https://docs.python.org/3/library/argparse.html
@@ -8,6 +8,18 @@ import argparse
 # https://docs.python.org/3/library/json.html
 import json
 
+# Use the elasticsearch library to simplify accessing
+# https://elasticsearch-py.readthedocs.io/en/6.3.1/
+import elasticsearch
+
+# This might help to simplify things, but not necessarily
+# https://pypi.org/project/elasticsearch-dsl/
+import elasticsearch_dsl
+
+# Used to verify address given
+# https://docs.python.org/3/library/ipaddress.html
+import ipaddress
+
 # This will parse the command-line arguments for our program
 # Very simple example of JSON being used:
 # python apthunter.py -wa '{"color":"Red"}'
@@ -15,12 +27,14 @@ parser = argparse.ArgumentParser(description="A program to hunt for Advanced Per
 parser.add_argument("-s",
 	"--server",
 	help="Hostname of the Elasticsearch server.",
-	default="127.0.0.1")
+	default="127.0.0.1",
+	dest="server")
 parser.add_argument("-p",
 	"--port",
 	help="Port the Elasticsearch server is running on.",
 	type=int,
-	default=9200)
+	default=9200,
+	dest="port")
 parser.add_argument("-ht",
 	"--honeytrap",
 	help="Search the honeytrap* index in Elasticsearch.  This index will contain HoneyTrap status messages and Honeypot connection attempts.",
@@ -60,3 +74,15 @@ parser.add_argument("--debug",
 args = parser.parse_args()
 
 
+# Check the IP server address
+try:
+	ip = ipaddress.ip_address(args.server)
+	#correct IP address found!
+except ValueError:
+	print("Address is invalid: %s" % args.server)
+	raise SystemExit
+
+# Check the port given
+if (args.port < 1 or args.port > 65535):
+	print("Port is invalid: %i" % args.port)
+	raise SystemExit
