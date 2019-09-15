@@ -2,10 +2,12 @@
 
 # Use the argparse library to simplify the command-line argument handling
 # https://docs.python.org/3/library/argparse.html
+# https://pymotw.com/3/argparse/
 import argparse
 
 # Use the json library to simplify the handling of JSON
 # https://docs.python.org/3/library/json.html
+# https://www.w3schools.com/python/python_json.asp
 import json
 
 # Use the elasticsearch library to simplify accessing
@@ -26,69 +28,80 @@ import ipaddress
 parser = argparse.ArgumentParser(description="A program to hunt for Advanced Persistent Threats (APT).  It provides a command-line wrapper for the Federated Security Module(FSm) to query the indicies which contain sensor data in Elasticsearch.", prog="apthunter", epilog="Copyright 2019 Wade W. Wesolowsky")
 parser.add_argument("-s",
 	"--server",
-	help="Hostname of the Elasticsearch server.",
+	help="IP address of the Elasticsearch server.  The default server is 127.0.0.1.",
 	default="127.0.0.1",
-	dest="server")
+	dest="server_IP",
+	action="store")
 parser.add_argument("-p",
 	"--port",
-	help="Port the Elasticsearch server is running on.",
+	help="Port the Elasticsearch server is running on.  The default port is 9200.",
 	type=int,
 	default=9200,
-	dest="port")
+	dest="port",
+	action="store")
 parser.add_argument("-ht",
 	"--honeytrap",
-	help="Search the honeytrap* index in Elasticsearch.  This index will contain HoneyTrap status messages and Honeypot connection attempts.",
+	help="Search the honeytrap* index in Elasticsearch.  This index will contain HoneyTrap status messages and Honeypot connection attempts.  The argument expects the JSON body for the query.",
 	type=json.loads,
-	dest="honeytrap")
+	dest="honeytrap_JSON",
+	action="store")
 parser.add_argument("-log",
 	"--logstash",
-	help="Search the logstash-* index in Elasticsearch.  This index will contain Zeek network traffic monitoring information.",
+	help="Search the logstash-* index in Elasticsearch.  This index will contain Zeek network traffic monitoring information.  The argument expects the JSON body for the query.",
 	type=json.loads,
-	dest="logstash")
+	dest="logstash_JSON",
+	action="store")
 parser.add_argument("-pf",
 	"--pfsense",
-	help="Search the pfsense-* index in Elasticsearch.  This index will contain firewall status messages and Snort alerts.",
+	help="Search the pfsense-* index in Elasticsearch.  This index will contain firewall status messages and Snort alerts.  The argument expects the JSON body for the query.",
 	type=json.loads,
-	dest="pfsense")
+	dest="pfsense_JSON",
+	action="store")
 parser.add_argument("-ss",
 	"--sweetsecurity",
-	help="Search the sweet_security index in Elasticsearch.  This index will contain detected device information and port scans.",
+	help="Search the sweet_security index in Elasticsearch.  This index will contain detected device information and port scans.  The argument expects the JSON body for the query.",
 	type=json.loads,
-	dest="sweetsecurity")
+	dest="sweetsecurity_JSON",
+	action="store")
 parser.add_argument("-ssa",
 	"--sweetsecurityalerts",
-	help="Search the sweet_security_alerts index in Elasticsearch.  This index will contain new (unique) Sweet Security log events.",
+	help="Search the sweet_security_alerts index in Elasticsearch.  This index will contain new (unique) Sweet Security log events.  The argument expects the JSON body for the query.",
 	type=json.loads,
-	dest="sweetsecurityalerts")
+	dest="sweetsecurityalerts_JSON",
+	action="store")
 parser.add_argument("-t",
 	"--tardis",
-	help="Search the tardis index in Elasticsearch.  This index will contain historical hosts, IP addresses, and websites.",
+	help="Search the tardis index in Elasticsearch.  This index will contain historical hosts, IP addresses, and websites.  The argument expects the JSON body of the query.",
 	type=json.loads,
-	dest="tardis")
+	dest="tardis_JSON",
+	action="store")
 parser.add_argument("-wa",
 	"--wazuhalerts",
-	help="Search the wazuh-alerts-3.x-* index in Elasticsearch.  This index will contain log events above the alert thresholds in Wazuh.",
+	help="Search the wazuh-alerts-3.x-* index in Elasticsearch.  This index will contain log events above the alert thresholds in Wazuh.  The argument expects the JSON body of the query.",
 	type=json.loads,
-	dest="wazuhalerts")
+	dest="wazuhalerts_JSON",
+	action="store")
 parser.add_argument("-wm",
 	"--wazuhmonitoring",
-	help="Search the wazuh-monitoring-3.x-* index in Elasticsearch.  This index will contain all Wazuh monitoring logs.",
+	help="Search the wazuh-monitoring-3.x-* index in Elasticsearch.  This index will contain all Wazuh monitoring logs.  The argument expects the JSON body of the query.",
 	type=json.loads,
-	dest="wazuhmonitoring")
-parser.add_argument("--debug",
+	dest="wazuhmonitoring_JSON",
+	action="store")
+# Store_true will set verbose to True if the argument is specified
+parser.add_argument("--verbose",
 	help="Outputs useful information to find errors.",
-	dest="debug")
+	dest="verbose",
+	action="store_true")
 
 # This gets the arguments!
 args = parser.parse_args()
 
-
 # Check the IP server address
 try:
-	ip = ipaddress.ip_address(args.server)
+	ip = ipaddress.ip_address(args.server_IP)
 	#correct IP address found!
 except ValueError:
-	print("Address is invalid: %s" % args.server)
+	print("Address is invalid: %s" % args.server_IP)
 	raise SystemExit
 
 # Check the port given
@@ -98,5 +111,33 @@ if (args.port < 1 or args.port > 65535):
 
 # Open an Elasticsearch connection using the argument
 es = Elasticsearch([
-    {'host': args.server, 'port': args.port, 'url_prefix': 'es', 'use_ssl': False},
+    {'host': args.server_IP, 'port': args.port, 'url_prefix': 'es', 'use_ssl': False},
 ])
+
+# Query es at the specified index using the body JSON query
+#res = es.search(index="test-index", body={"query": {"match_all": {}}})
+
+# Are the arguments initialized?
+# https://stackoverflow.com/questions/30487767/check-if-argparse-optional-argument-is-set-or-not
+if args.honeytrap_JSON is not None:
+	res = es.search(index="honeytrap", body=args.honeytrap_JSON)
+if args.logstash_JSON is not None:
+	res = es.search(index="logstash-*", body=args.logstash_JSON)
+if args.pfsense_JSON is not None:
+	res = es.search(index="pfsense-*", body=args.pfsense_JSON)
+if args.sweetsecurity_JSON is not None:
+	res = es.search(index="sweet_security", body=args.sweetsecurity_JSON)
+if args.sweetsecurityalers_JSON is not None:
+	res = es.search(index="sweet_security_alerts", body=args.sweetsecurityalerts_JSON)
+if args.tardis_JSON is not None:
+	res = es.search(index="tardis", body=args.tardis_JSON)
+if args.wazuhalerts_JSON is not None:
+	res = es.search(index="wazuh-alerts-3.x-*", body=args.wazuhalerts_JSON)
+if args.wazuhmonitoring_JSON is not None:
+	res = es.search(index="wazuh-monitoring-3.x-*", body=args.wazuhmonitoring_JSON)
+
+
+# Output the results
+#print("Got %d Hits:" % res['hits']['total']['value'])
+#for hit in res['hits']['hits']:
+#    print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
