@@ -90,6 +90,7 @@ parser.add_argument("-wm",
 # Store_true will set verbose to True if the argument is specified
 parser.add_argument("--verbose",
 	help="Outputs useful information to find errors.",
+	default=False,
 	dest="verbose",
 	action="store_true")
 
@@ -98,16 +99,16 @@ args = parser.parse_args()
 
 # Check the IP server address
 try:
-	ip = ipaddress.ip_address(args.server_IP)
-	#correct IP address found!
+    ip = ipaddress.ip_address(args.server_IP)
+    #correct IP address found!
 except ValueError:
-	print("Address is invalid: %s" % args.server_IP)
-	raise SystemExit
+    print("Address is invalid: %s" % args.server_IP)
+    raise SystemExit
 
 # Check the port given
 if (args.port < 1 or args.port > 65535):
-	print("Port is invalid: %i" % args.port)
-	raise SystemExit
+    print("Port is invalid: %i" % args.port)
+    raise SystemExit
 
 # Open an Elasticsearch connection using the argument
 es = Elasticsearch([
@@ -119,23 +120,73 @@ es = Elasticsearch([
 
 # Are the arguments initialized?
 # https://stackoverflow.com/questions/30487767/check-if-argparse-optional-argument-is-set-or-not
-if args.honeytrap_JSON is not None:
-	res = es.search(index="honeytrap", body=args.honeytrap_JSON)
-if args.logstash_JSON is not None:
-	res = es.search(index="logstash-*", body=args.logstash_JSON)
-if args.pfsense_JSON is not None:
-	res = es.search(index="pfsense-*", body=args.pfsense_JSON)
-if args.sweetsecurity_JSON is not None:
-	res = es.search(index="sweet_security", body=args.sweetsecurity_JSON)
-if args.sweetsecurityalers_JSON is not None:
-	res = es.search(index="sweet_security_alerts", body=args.sweetsecurityalerts_JSON)
-if args.tardis_JSON is not None:
-	res = es.search(index="tardis", body=args.tardis_JSON)
-if args.wazuhalerts_JSON is not None:
-	res = es.search(index="wazuh-alerts-3.x-*", body=args.wazuhalerts_JSON)
-if args.wazuhmonitoring_JSON is not None:
-	res = es.search(index="wazuh-monitoring-3.x-*", body=args.wazuhmonitoring_JSON)
 
+# Stores the result(s) of the queries
+result = []
+
+if args.honeytrap_JSON is not None:
+    try:
+        temp = es.search(index="honeytrap", body=args.honeytrap_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("honeytrap query failed")
+
+if args.logstash_JSON is not None:
+    try:
+        temp = es.search(index="logstash-*", body=args.logstash_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("logstash query failed")
+
+if args.pfsense_JSON is not None:
+    try:
+        temp = es.search(index="pfsense-*", body=args.pfsense_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("pfsense query failed")
+
+if args.sweetsecurity_JSON is not None:
+    try:
+        temp = es.search(index="sweet_security", body=args.sweetsecurity_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("sweet_security query failed")
+
+if args.sweetsecurityalers_JSON is not None:
+    try:
+        temp = es.search(index="sweet_security_alerts", body=args.sweetsecurityalerts_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("sweet_security_alerts query failed")
+
+if args.tardis_JSON is not None:
+    try:
+        temp = es.search(index="tardis", body=args.tardis_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("tardis query failed")
+
+if args.wazuhalerts_JSON is not None:
+    try:
+        temp = es.search(index="wazuh-alerts-3.x-*", body=args.wazuhalerts_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("wazuh-alerts query failed")
+
+if args.wazuhmonitoring_JSON is not None:
+    try:
+        temp = es.search(index="wazuh-monitoring-3.x-*", body=args.wazuhmonitoring_JSON)
+        result.append(temp)
+    except:
+        #error
+        verbose and print("wazuh-monitoring query failed")
 
 # Output the results
 #print("Got %d Hits:" % res['hits']['total']['value'])
