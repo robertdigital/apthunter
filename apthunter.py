@@ -130,7 +130,7 @@ if args.honeytrap_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("honeytrap query failed")
+        args.verbose and print("honeytrap query failed")
 
 if args.logstash_JSON is not None:
     try:
@@ -138,7 +138,7 @@ if args.logstash_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("logstash query failed")
+        args.verbose and print("logstash query failed")
 
 if args.pfsense_JSON is not None:
     try:
@@ -146,7 +146,7 @@ if args.pfsense_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("pfsense query failed")
+        args.verbose and print("pfsense query failed")
 
 if args.sweetsecurity_JSON is not None:
     try:
@@ -154,15 +154,15 @@ if args.sweetsecurity_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("sweet_security query failed")
+        args.verbose and print("sweet_security query failed")
 
-if args.sweetsecurityalers_JSON is not None:
+if args.sweetsecurityalerts_JSON is not None:
     try:
         temp = es.search(index="sweet_security_alerts", body=args.sweetsecurityalerts_JSON)
         result.append(temp)
     except:
         #error
-        verbose and print("sweet_security_alerts query failed")
+        args.verbose and print("sweet_security_alerts query failed")
 
 if args.tardis_JSON is not None:
     try:
@@ -170,7 +170,7 @@ if args.tardis_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("tardis query failed")
+        args.verbose and print("tardis query failed")
 
 if args.wazuhalerts_JSON is not None:
     try:
@@ -178,7 +178,7 @@ if args.wazuhalerts_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("wazuh-alerts query failed")
+        args.verbose and print("wazuh-alerts query failed")
 
 if args.wazuhmonitoring_JSON is not None:
     try:
@@ -186,7 +186,7 @@ if args.wazuhmonitoring_JSON is not None:
         result.append(temp)
     except:
         #error
-        verbose and print("wazuh-monitoring query failed")
+        args.verbose and print("wazuh-monitoring query failed")
 
 # Output the results
 #print("Got %d Hits:" % res['hits']['total']['value'])
