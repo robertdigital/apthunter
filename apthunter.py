@@ -25,7 +25,9 @@ import ipaddress
 # This will parse the command-line arguments for our program
 # Very simple example of JSON being used:
 # python apthunter.py -wa '{"color":"Red"}'
-parser = argparse.ArgumentParser(description="A program to hunt for Advanced Persistent Threats (APT).  It provides a command-line wrapper for the Federated Security Module(FSm) to query the indicies which contain sensor data in Elasticsearch.", prog="apthunter", epilog="Copyright 2019 Wade W. Wesolowsky")
+parser = argparse.ArgumentParser(description="A program to hunt for Advanced Persistent Threats (APT).  It provides a command-line wrapper for the Federated Security Module (FSM) to query the indicies which contain sensor data in Elasticsearch.",
+	 prog="apthunter", 
+	epilog="Copyright 2019 Wade W. Wesolowsky")
 parser.add_argument("-s",
 	"--server",
 	help="IP address of the Elasticsearch server.  The default server is 127.0.0.1.",
@@ -87,6 +89,12 @@ parser.add_argument("-wm",
 	type=json.loads,
 	dest="wazuhmonitoring_JSON",
 	action="store")
+parser.add_argument("-win",
+	"--winlogbeat",
+	help="Search the winlogbeat-* index in Elasticsearch.  This index will contain Windows Even logs.  The argument expects the JSON body of the query.",
+	type=json.loads,
+	dest="winlogbeat_JSON",
+	action="store")
 # Store_true will set verbose to True if the argument is specified
 parser.add_argument("--verbose",
 	help="Outputs useful information to find errors.",
@@ -102,7 +110,7 @@ try:
     ip = ipaddress.ip_address(args.server_IP)
     #correct IP address found!
 except ValueError:
-    print("Address is invalid: %s" % args.server_IP)
+    print(f"Address is invalid: {args.server_IP}")
     raise SystemExit
 
 # Check the port given
@@ -122,12 +130,12 @@ es = Elasticsearch([
 # https://stackoverflow.com/questions/30487767/check-if-argparse-optional-argument-is-set-or-not
 
 # Stores the result(s) of the queries
-result = []
+results = []
 
 if args.honeytrap_JSON is not None:
     try:
         temp = es.search(index="honeytrap", body=args.honeytrap_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("honeytrap query failed")
@@ -135,7 +143,7 @@ if args.honeytrap_JSON is not None:
 if args.logstash_JSON is not None:
     try:
         temp = es.search(index="logstash-*", body=args.logstash_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("logstash query failed")
@@ -143,7 +151,7 @@ if args.logstash_JSON is not None:
 if args.pfsense_JSON is not None:
     try:
         temp = es.search(index="pfsense-*", body=args.pfsense_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("pfsense query failed")
@@ -151,7 +159,7 @@ if args.pfsense_JSON is not None:
 if args.sweetsecurity_JSON is not None:
     try:
         temp = es.search(index="sweet_security", body=args.sweetsecurity_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("sweet_security query failed")
@@ -159,7 +167,7 @@ if args.sweetsecurity_JSON is not None:
 if args.sweetsecurityalerts_JSON is not None:
     try:
         temp = es.search(index="sweet_security_alerts", body=args.sweetsecurityalerts_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("sweet_security_alerts query failed")
@@ -167,7 +175,7 @@ if args.sweetsecurityalerts_JSON is not None:
 if args.tardis_JSON is not None:
     try:
         temp = es.search(index="tardis", body=args.tardis_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("tardis query failed")
@@ -175,7 +183,7 @@ if args.tardis_JSON is not None:
 if args.wazuhalerts_JSON is not None:
     try:
         temp = es.search(index="wazuh-alerts-3.x-*", body=args.wazuhalerts_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("wazuh-alerts query failed")
@@ -183,12 +191,30 @@ if args.wazuhalerts_JSON is not None:
 if args.wazuhmonitoring_JSON is not None:
     try:
         temp = es.search(index="wazuh-monitoring-3.x-*", body=args.wazuhmonitoring_JSON)
-        result.append(temp)
+        results.append(temp)
     except:
         #error
         args.verbose and print("wazuh-monitoring query failed")
 
-# Output the results
+if args.winlogbeat_JSON is not None:
+    try:
+        temp = es.search(index="winlogbeat-*", body=args.winlogbeat_JSON)
+        results.append(temp)
+    except:
+        #error
+        args.verbose and print("wazuhlogbeat query failed")
+
+
+# Output the results, recommendation was to use f-string
+# https://saralgyaan.com/posts/f-string-in-python-usage-guide/
+
+# Hit count total (very, very simple metric)
+if len(results) > 0:
+    hits = 0
+    for result in results:
+        hits = hits + result.hits.total
+    print(f"Total results: {hits}")
+
 #print("Got %d Hits:" % res['hits']['total']['value'])
 #for hit in res['hits']['hits']:
 #    print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
