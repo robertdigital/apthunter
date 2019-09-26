@@ -131,11 +131,13 @@ es = Elasticsearch([
 
 # Stores the result(s) of the queries
 results = []
+sensors_used = 0
 
 if args.honeytrap_JSON is not None:
     try:
         temp = es.search(index="honeytrap", body=args.honeytrap_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("honeytrap query failed")
@@ -144,6 +146,7 @@ if args.logstash_JSON is not None:
     try:
         temp = es.search(index="logstash-*", body=args.logstash_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("logstash query failed")
@@ -152,6 +155,7 @@ if args.pfsense_JSON is not None:
     try:
         temp = es.search(index="pfsense-*", body=args.pfsense_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("pfsense query failed")
@@ -160,6 +164,7 @@ if args.sweetsecurity_JSON is not None:
     try:
         temp = es.search(index="sweet_security", body=args.sweetsecurity_JSON)
         results.append(temp)
+        sensors_userd += 1
     except:
         #error
         args.verbose and print("sweet_security query failed")
@@ -168,6 +173,7 @@ if args.sweetsecurityalerts_JSON is not None:
     try:
         temp = es.search(index="sweet_security_alerts", body=args.sweetsecurityalerts_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("sweet_security_alerts query failed")
@@ -176,6 +182,7 @@ if args.tardis_JSON is not None:
     try:
         temp = es.search(index="tardis", body=args.tardis_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("tardis query failed")
@@ -184,6 +191,7 @@ if args.wazuhalerts_JSON is not None:
     try:
         temp = es.search(index="wazuh-alerts-3.x-*", body=args.wazuhalerts_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("wazuh-alerts query failed")
@@ -192,6 +200,7 @@ if args.wazuhmonitoring_JSON is not None:
     try:
         temp = es.search(index="wazuh-monitoring-3.x-*", body=args.wazuhmonitoring_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("wazuh-monitoring query failed")
@@ -200,6 +209,7 @@ if args.winlogbeat_JSON is not None:
     try:
         temp = es.search(index="winlogbeat-*", body=args.winlogbeat_JSON)
         results.append(temp)
+        sensors_used += 1
     except:
         #error
         args.verbose and print("wazuhlogbeat query failed")
@@ -208,13 +218,15 @@ if args.winlogbeat_JSON is not None:
 # Output the results, recommendation was to use f-string
 # https://saralgyaan.com/posts/f-string-in-python-usage-guide/
 
-# Hit count total (very, very simple metric)
+# Hit count total (very, very simple metric) to determine presence of APSTs
 if len(results) > 0:
     hits = 0
     for result in results:
         hits = hits + result.hits.total
-    print(f"Total results: {hits}")
+    per_index = hits / sensors_used
+    print(f"APST Query Hits: {hits}")
+    print(f"Hits Per Sensor: {per_index}")
+else:
+    print(f"No APST Detected from Queries")
 
-#print("Got %d Hits:" % res['hits']['total']['value'])
-#for hit in res['hits']['hits']:
-#    print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
+
