@@ -1,4 +1,5 @@
 # apthunter
+<pre><code>
 A command-line wrapper to search for APST using our Federated Security Module
 
 usage: apthunter [-h] [-s SERVER_IP] [-p PORT] [-ht HONEYTRAP_JSON]
@@ -65,3 +66,4 @@ optional arguments:
   --verbose             Outputs useful information to find errors.
 
 Copyright 2019 Wade W. Wesolowsky
+</code></pre>
