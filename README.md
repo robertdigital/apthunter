@@ -1,7 +1,5 @@
 # APT Hunter
 <pre><code>
-A command-line wrapper to search for APST using our Federated Security Module
-
 usage: apthunter [-h] [-s SERVER_IP] [-p PORT] [-ht HONEYTRAP_JSON]
                  [-log LOGSTASH_JSON] [-pf PFSENSE_JSON]
                  [-ss SWEETSECURITY_JSON] [-ssa SWEETSECURITYALERTS_JSON]
